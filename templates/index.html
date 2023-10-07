@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendations</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .movie {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            width: 450px;          /* Fixed width for the movie block */
+            height: 400px;         /* Fixed height for the movie block */
+            vertical-align: top;   /* Aligns the top of each movie block */
+            position: relative;    /* Allows for absolute positioning of inner content */
+        }
+        
+        .movie img {
+            width: 150px;
+            height: auto;
+            border-radius: 5px;
+
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        
+        .movie-description {
+            font-size: 0.9em;
+            color: #666;
+            max-height: 100px;      /* Set maximum height for the description */
+            overflow-y: auto;       /* Add vertical scrollbar if content overflows */
+            position: absolute;     /* Absolute positioning */
+            bottom: 10px;           /* Push to the bottom of the movie block */
+            left: 10px;
+            right: 10px;
+        }
+
+        .movie-title {
+            font-size: 1.2em;      /* Increase font size */
+            font-weight: bold;     /* Make the text bold */
+            margin: 10px 0;        /* Add some margin for better spacing */
+        }
+        
+
+
+        button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Enter User ID (Between 0-600) to get Movie Recommendations</h2>
+
+    <div style="text-align: center;">
+        <input type="number" id="user-id-input" placeholder="Enter User ID">
+        <button onclick="getRecommendations()">Get Recommendations</button>
+    </div>
+
+    <div id="recommendations">
+        <!-- This is where the recommendations will appear -->
+    </div>
+
+    <script>
+        async function getRecommendations() {
+            const userId = document.getElementById('user-id-input').value;
+
+            if (userId) {
+                const response = await fetch('/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+
+                const recommendations = await response.json();
+                displayRecommendations(recommendations);
+            } else {
+                alert('Please enter a valid User ID!');
+            }
+        }
+
+        function displayRecommendations(recommendations) {
+            const recommendationsDiv = document.getElementById('recommendations');
+            recommendationsDiv.innerHTML = ''; // Clear previous recommendations
+
+            recommendations.forEach(movie => {
+                const movieDiv = document.createElement('div');
+                movieDiv.className = 'movie';
+
+                const moviePoster = document.createElement('img');
+                moviePoster.src = "http://image.tmdb.org/t/p/w500" + movie.poster;
+                moviePoster.alt = movie.title;
+                moviePoster.onerror = function() {
+                    this.onerror = null; // prevent infinite loop on error
+                    this.src = '/static/movie.webp'; // replace with your placeholder image path
+                };
+
+                const movieTitle = document.createElement('p');
+                movieTitle.innerText = movie.title;
+                movieTitle.className = 'movie-title'; 
+
+                const movieDescription = document.createElement('p');
+                movieDescription.innerText = movie.overview;
+                movieDescription.className = 'movie-description';
+
+                movieDiv.appendChild(moviePoster);
+                movieDiv.appendChild(movieTitle);
+                movieDiv.appendChild(movieDescription);
+                recommendationsDiv.appendChild(movieDiv);
+            });
+        }
+    </script>
+
+</body>
+
+</html>
